@@ -19,13 +19,15 @@
     }
 
     html, body {
+      margin: 0;
+      padding: 0;
       height: 100%;
+      width: 100%;
       background: var(--bg);
       color: #fff;
-      overflow-x: hidden;
-      overflow-y: hidden;
+      overflow: hidden;
+      font-family: 'Orbitron', sans-serif;
     }
-    body { font-family: 'Orbitron', sans-serif; }
 
     /* Screens */
     .screen { display: none !important; }
@@ -46,6 +48,7 @@
       justify-content: center;
       background: rgba(10,10,10,0.92);
       z-index: 100;
+      overflow: hidden;
       opacity: 1;
       transition: opacity .3s ease;
     }
@@ -78,17 +81,18 @@
       border: 1px solid rgba(255,255,255,0.12);
       color: #fff;
       outline: none;
+      overflow: hidden;
       transition: border .2s ease, box-shadow .2s ease, background .2s ease;
     }
     .input::placeholder { color: rgba(255,255,255,0.6); }
     .input:focus { border-color: var(--electric); box-shadow: 0 0 0 4px rgba(0,212,255,.1); background: rgba(255,255,255,0.12); }
 
     /* Canvas */
-    #gameCanvas { width: 100vw; height: 100vh; display: block; background: transparent; }
+    #gameCanvas { position: absolute; top: 0; left: 0; width: 100% !important; height: 100% !important; display: block; background: transparent; }
 
     /* HUD */
-    .hud { position: absolute; top: 0; left: 0; right: 0; pointer-events: none; z-index: 30; }
-    .hud > * { pointer-events: auto; }
+    .hud { position: fixed; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; z-index: 30; }
+    .hud > * { pointer-events: auto; margin: 8px; }
 
     /* Progress bar (to moon) */
     .progress-rail {
@@ -149,13 +153,14 @@
     .ctl {
       width: 60px; height: 60px; border-radius: 999px; display: flex; align-items: center; justify-content: center;
       background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.16);
-      transition: transform .1s ease;
+      transition: transform .1s ease, opacity .1s ease;
     }
-    .ctl:active { transform: scale(.95); }
+    .ctl:active { transform: scale(.95); opacity: 0.8; }
 
     /* Loading overlay */
     .loading {
       position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(0,0,0,.55); z-index: 50;
+      flex-direction: column;
     }
     .loading.show { display: flex; }
     .spinner {
@@ -163,6 +168,7 @@
       animation: spin 1s linear infinite;
     }
     @keyframes spin { to { transform: rotate(360deg);} }
+    .loading-message { margin-top: 12px; text-align: center; color: white; font-size: 0.875rem; }
 
     /* Hints */
     .hint { font-size: .75rem; color: rgba(255,255,255,.65); }
@@ -184,6 +190,64 @@
     }
     /* Hide default cursor on desktop */
     body, #app, canvas { cursor: none; }
+
+    /* Ajustes para móviles */
+    @media (max-width: 768px) {
+      .brand-title {
+        font-size: 1rem;
+      }
+      
+      .hud > div {
+        transform: scale(0.9);
+        transform-origin: top left;
+      }
+      
+      .hud > div:last-child {
+        transform-origin: top right;
+      }
+      
+      #btnPause {
+        padding: 8px 16px;
+        font-size: 0.9rem;
+      }
+      
+      .ctl {
+        width: 50px;
+        height: 50px;
+        font-size: 1.2rem;
+      }
+      
+      /* Ajustar overlays para móviles */
+      .screen.active {
+        padding: 10px;
+      }
+      
+      .glass {
+        padding: 1rem;
+      }
+    }
+
+    /* Ajustes para pantallas muy pequeñas */
+    @media (max-width: 480px) {
+      .brand-title {
+        font-size: 0.9rem;
+      }
+      
+      #sessionChip {
+        font-size: 0.7rem;
+        padding: 4px 8px;
+      }
+      
+      .ctl {
+        width: 44px;
+        height: 44px;
+        font-size: 1rem;
+      }
+      
+      .pad {
+        bottom: 16px;
+      }
+    }
   </style>
 </head>
 <body>
@@ -361,6 +425,7 @@
     <!-- Loading overlay -->
     <div id="loading" class="loading">
       <div class="spinner"></div>
+      <div class="loading-message"></div>
     </div>
     <!-- Custom cursor elements -->
     <div class="cursor-dot" id="cursorDot"></div>
@@ -436,9 +501,10 @@
       magnet:"#60a5fa",
       shield:"#34d399",
       multi:"#fb923c",
-      cyan:"#00ffff",      // added to fix error
-      purple:"#764ba2"     // added to fix error
+      cyan:"#00ffff",
+      purple:"#764ba2"
     };
+    const DEBUG_MODE = localStorage.getItem('frobry_debug') === 'true';
 
     // DOM
     const screenAuth = document.getElementById('screen-auth');
@@ -514,17 +580,30 @@
     function ensureDeviceKey() {
       let key = localStorage.getItem('frobry_device_key');
       if (!key) {
-        key = crypto.getRandomValues(new Uint32Array(4)).join('-');
+        // Generar un ID más robusto
+        key = 'frobry_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         localStorage.setItem('frobry_device_key', key);
       }
       profile.deviceKey = key;
+      return key;
     }
     ensureDeviceKey();
 
-    async function sha256(text) {
-      const enc = new TextEncoder().encode(text);
-      const buf = await crypto.subtle.digest('SHA-256', enc);
-      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    function validateAuthForm() {
+      const u = authUsername.value.trim();
+      const e = authEmail.value.trim();
+      
+      if (!u || u.length < 3) {
+        setMsg(authMsg, 'Username must be at least 3 characters.', 'text-red-400');
+        return false;
+      }
+      
+      if (!e || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) {
+        setMsg(authMsg, 'Please enter a valid email address.', 'text-red-400');
+        return false;
+      }
+      
+      return true;
     }
 
     function saveLocalProfile() {
@@ -566,25 +645,39 @@
     }
 
     btnSaveProfile.addEventListener('click', () => {
-      const u = authUsername.value.trim();
-      const e = authEmail.value.trim();
-      if (!u || !e) return setMsg(authMsg, 'Please enter username and email.', 'text-red-400');
-      profile.username = u; profile.email = e;
+      if (!validateAuthForm()) return;
+      
+      profile.username = authUsername.value.trim();
+      profile.email = authEmail.value.trim();
       saveLocalProfile();
       setMsg(authMsg, 'Profile saved. Launching...', 'text-green-400');
       hideAuthAndStart();
     });
 
     btnPlayNow.addEventListener('click', () => {
-      const u = authUsername.value.trim();
-      const e = authEmail.value.trim();
-      if (!u || !e) return setMsg(authMsg, 'Please enter username and email to continue.', 'text-red-400');
-      profile.username = u; profile.email = e;
+      if (!validateAuthForm()) return;
+      
+      profile.username = authUsername.value.trim();
+      profile.email = authEmail.value.trim();
       saveLocalProfile();
       hideAuthAndStart();
     });
 
     function setMsg(el, text, cls='') { el.className = cls; el.textContent = text; }
+
+    // Loading functions
+    function showLoading(message = 'Loading...') {
+      const loading = document.getElementById('loading');
+      const messageEl = loading.querySelector('.loading-message');
+      
+      messageEl.textContent = message;
+      loading.classList.add('show');
+    }
+
+    function hideLoading() {
+      const loading = document.getElementById('loading');
+      loading.classList.remove('show');
+    }
 
     // GAME
     let running = false;
@@ -593,6 +686,8 @@
     let score = 0;
     let points = 0;
     let tokensEarned = 0;
+    let autoSaveInterval;
+    let lastFrameTime = 0;
 
     let player = {
       x: 0, y: 0, vx: 0, vy: -1, speedX: 6, thrust: 9, size: 24,
@@ -613,14 +708,69 @@
     window.addEventListener('keyup', e => { if (e.key in keys) keys[e.key] = false; });
 
     let touchLeft=false, touchRight=false, touchUp=false;
-    ctlLeft.addEventListener('touchstart', e => { e.preventDefault(); touchLeft = true; }, {passive:false});
-    ctlLeft.addEventListener('touchend', e => { e.preventDefault(); touchLeft = false; }, {passive:false});
-    ctlRight.addEventListener('touchstart', e => { e.preventDefault(); touchRight = true; }, {passive:false});
-    ctlRight.addEventListener('touchend', e => { e.preventDefault(); touchRight = false; }, {passive:false});
-    ctlUp.addEventListener('touchstart', e => { e.preventDefault(); touchUp = true; }, {passive:false});
-    ctlUp.addEventListener('touchend', e => { e.preventDefault(); touchUp = false; }, {passive:false});
+
+    function setupTouchControls() {
+      const controls = [ctlLeft, ctlRight, ctlUp];
+      
+      controls.forEach(control => {
+        control.addEventListener('touchstart', e => {
+          e.preventDefault();
+          const id = control.id;
+          if (id === 'ctlLeft') touchLeft = true;
+          if (id === 'ctlRight') touchRight = true;
+          if (id === 'ctlUp') touchUp = true;
+          
+          // Feedback visual
+          control.style.transform = 'scale(0.9)';
+          control.style.opacity = '0.8';
+        }, {passive: false});
+        
+        control.addEventListener('touchend', e => {
+          e.preventDefault();
+          const id = control.id;
+          if (id === 'ctlLeft') touchLeft = false;
+          if (id === 'ctlRight') touchRight = false;
+          if (id === 'ctlUp') touchUp = false;
+          
+          // Restaurar estilo
+          control.style.transform = 'scale(1)';
+          control.style.opacity = '1';
+        }, {passive: false});
+        
+        control.addEventListener('touchcancel', e => {
+          e.preventDefault();
+          const id = control.id;
+          if (id === 'ctlLeft') touchLeft = false;
+          if (id === 'ctlRight') touchRight = false;
+          if (id === 'ctlUp') touchUp = false;
+          
+          // Restaurar estilo
+          control.style.transform = 'scale(1)';
+          control.style.opacity = '1';
+        }, {passive: false});
+      });
+    }
+    setupTouchControls();
 
     btnPause.addEventListener('click', () => { paused = !paused; btnPause.textContent = paused ? 'Resume' : 'Pause'; });
+
+    // Guardado automático
+    function startAutoSave() {
+      if (autoSaveInterval) clearInterval(autoSaveInterval);
+      autoSaveInterval = setInterval(() => {
+        if (running && !paused) {
+          saveLocalProfile();
+          console.log('Game auto-saved');
+        }
+      }, 30000); // 30 segundos
+    }
+
+    function stopAutoSave() {
+      if (autoSaveInterval) {
+        clearInterval(autoSaveInterval);
+        autoSaveInterval = null;
+      }
+    }
 
     function resetGame() {
       score = 0; points = 0; tokensEarned = 0;
@@ -649,6 +799,7 @@
       running = true; paused = false;
       profile.gamesPlayed += 1;
       saveLocalProfile();
+      startAutoSave();
       tLast = 0;
       requestAnimationFrame(loop);
     }
@@ -656,11 +807,20 @@
     function loop(ts) {
       if (!running) return;
       if (!tLast) tLast = ts;
-      const dt = Math.min(32, ts - tLast);
-      tLast = ts;
-
-      if (!paused && player.alive) update(dt/16.6667);
-      draw();
+      
+      // Control de FPS para mejorar rendimiento
+      const fps = 60;
+      const frameInterval = 1000 / fps;
+      const elapsed = ts - tLast;
+      
+      if (elapsed > frameInterval) {
+        const dt = Math.min(32, elapsed) / 16.6667;
+        tLast = ts - (elapsed % frameInterval);
+        
+        if (!paused && player.alive) update(dt);
+        draw();
+      }
+      
       requestAnimationFrame(loop);
     }
 
@@ -796,6 +956,117 @@
       progressFill.style.height = (prog*100).toFixed(1) + '%';
     }
 
+    // Crear pool de partículas para reutilización
+    const particlePool = [];
+    const MAX_PARTICLES = 200;
+    const particles = [];
+
+    function getParticle() {
+      if (particlePool.length > 0) {
+        return particlePool.pop();
+      }
+      return {};
+    }
+
+    function recycleParticle(p) {
+      if (particlePool.length < MAX_PARTICLES) {
+        particlePool.push(p);
+      }
+    }
+
+    function spawnParticles(x, y, color) {
+      for (let i = 0; i < 12; i++) {
+        if (particles.length >= MAX_PARTICLES) break;
+        
+        const p = getParticle();
+        p.x = x;
+        p.y = y;
+        p.vx = (Math.random() - 0.5) * 3;
+        p.vy = (Math.random() - 1.2) * 3;
+        p.life = 18 + Math.random() * 12;
+        p.color = color;
+        
+        particles.push(p);
+      }
+    }
+
+    function spawnExplosion(x,y){
+      for (let i=0;i<36;i++){
+        if (particles.length >= MAX_PARTICLES) break;
+        
+        const p = getParticle();
+        p.x = x;
+        p.y = y;
+        p.vx = (Math.random()-0.5)*6;
+        p.vy = (Math.random()-0.5)*6;
+        p.life = 24 + Math.random()*16;
+        p.color = '#ff6b6b';
+        
+        particles.push(p);
+      }
+    }
+
+    function spawnRing(x,y,type){
+      const color = type==='magnet'?COLORS.magnet:type==='shield'?COLORS.shield:COLORS.multi;
+      for (let i=0;i<30;i++){
+        if (particles.length >= MAX_PARTICLES) break;
+        
+        const p = getParticle();
+        const ang = (i/30)*Math.PI*2;
+        p.x = x + Math.cos(ang)*2;
+        p.y = y + Math.sin(ang)*2;
+        p.vx = Math.cos(ang)*1.5;
+        p.vy = Math.sin(ang)*1.5;
+        p.life = 22;
+        p.color = color;
+        
+        particles.push(p);
+      }
+    }
+
+    function stepParticles(){
+      for (let i = particles.length - 1; i >= 0; i--) {
+        const p = particles[i];
+        p.x += p.vx;
+        p.y += p.vy;
+        p.life--;
+        
+        if (p.life <= 0) {
+          recycleParticle(p);
+          particles.splice(i, 1);
+          continue;
+        }
+        
+        ctx.globalAlpha = Math.max(0, p.life / 24);
+        ctx.fillStyle = p.color;
+        ctx.fillRect(p.x, p.y, 2, 2);
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    function drawDebugInfo() {
+      if (!DEBUG_MODE) return;
+      
+      ctx.font = '12px Orbitron';
+      ctx.fillStyle = '#00ff00';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'top';
+      
+      const info = [
+        `FPS: ${Math.round(1000 / (performance.now() - (lastFrameTime || performance.now())))}`,
+        `Objects: ${coins.length + meteors.length + powerups.length + particles.length}`,
+        `Player: x:${Math.round(player.x)}, y:${Math.round(player.y)}`,
+        `Score: ${score}`,
+        `Power: M:${player.magnet.toFixed(1)}, S:${player.shield.toFixed(1)}, X:${player.multiplier.toFixed(1)}`
+      ];
+      
+      lastFrameTime = performance.now();
+      
+      info.forEach((text, i) => {
+        ctx.fillText(text, 10, 10 + i * 16);
+      });
+    }
+
     function draw() {
       ctx.clearRect(0,0,canvas.width, canvas.height);
 
@@ -818,6 +1089,7 @@
       }
 
       stepParticles();
+      drawDebugInfo();
     }
 
     function drawShip(x,y,size){
@@ -867,37 +1139,48 @@
       ctx.fillStyle = '#991b1b'; ctx.fill();
     }
 
-    // Particles
-    const particles = [];
-    function spawnParticles(x,y,color){
-      for (let i=0;i<12;i++){
-        particles.push({ x, y, vx: (Math.random()-0.5)*3, vy: (Math.random()-1.2)*3, life: 18 + Math.random()*12, color });
+    async function syncResultWithAPI() {
+      showLoading('Saving progress...');
+      apiMsg.textContent = '';
+      try {
+        const payload = {
+          username: profile.username,
+          email: profile.email,
+          password: profile.deviceKey,
+          highScore: Number(profile.highScore) || 0,
+          totalPoints: Number(profile.totalPoints) || 0,
+          gamesPlayed: Number(profile.gamesPlayed) || 0,
+          powerUpsUsed: Number(profile.powerUpsUsed) || 0
+        };
+        
+        const res = await fetch(API_ENDPOINT, { 
+          method: 'POST', 
+          headers: { 'Content-Type': 'application/json' }, 
+          body: JSON.stringify(payload) 
+        });
+        
+        const data = await res.json().catch(() => ({}));
+        if (data && data.success) { 
+          apiMsg.className = 'text-green-400'; 
+          apiMsg.textContent = data.message || 'Player data saved'; 
+        } else { 
+          apiMsg.className = 'text-yellow-400'; 
+          apiMsg.textContent = (data && data.message) ? data.message : 'Saved locally. API did not confirm success.'; 
+        }
+      } catch (e) {
+        apiMsg.className = 'text-red-400'; 
+        apiMsg.textContent = 'Network error. Your progress is saved locally.'; 
+        console.error('API Error:', e);
+      } finally {
+        hideLoading();
       }
-    }
-    function spawnExplosion(x,y){
-      for (let i=0;i<36;i++){
-        particles.push({ x, y, vx: (Math.random()-0.5)*6, vy: (Math.random()-0.5)*6, life: 24 + Math.random()*16, color: '#ff6b6b' });
-      }
-    }
-    function spawnRing(x,y,type){
-      const color = type==='magnet'?COLORS.magnet:type==='shield'?COLORS.shield:COLORS.multi;
-      for (let i=0;i<30;i++){
-        const ang = (i/30)*Math.PI*2;
-        particles.push({ x: x + Math.cos(ang)*2, y: y + Math.sin(ang)*2, vx: Math.cos(ang)*1.5, vy: Math.sin(ang)*1.5, life: 22, color });
-      }
-    }
-    function stepParticles(){
-      for (const p of particles) {
-        p.x += p.vx; p.y += p.vy; p.life--;
-        ctx.globalAlpha = Math.max(0, p.life/24);
-        ctx.fillStyle = p.color; ctx.fillRect(p.x, p.y, 2, 2);
-        ctx.globalAlpha = 1;
-      }
-      for (let i=particles.length-1;i>=0;i--) if (particles[i].life<=0) particles.splice(i,1);
     }
 
     function endGame() {
       running = false;
+      stopAutoSave();
+      saveLocalProfile();
+      
       tokensEarned = Math.floor(points / TOKEN_RATE);
       const prevHigh = profile.highScore || 0;
       const isNewHigh = score > prevHigh;
@@ -914,33 +1197,9 @@
       syncResultWithAPI().finally(()=>{ showScreen(screenOver); });
     }
 
-    async function syncResultWithAPI() {
-      const loading = document.getElementById('loading');
-      apiMsg.textContent = '';
-      loading.classList.add('show');
-      try {
-        const encrypted = await sha256(profile.deviceKey);
-        const payload = {
-          username: profile.username,
-          email: profile.email,
-          password: encrypted,
-          highScore: Number(profile.highScore) || 0,
-          totalPoints: Number(profile.totalPoints) || 0,
-          gamesPlayed: Number(profile.gamesPlayed) || 0,
-          powerUpsUsed: Number(profile.powerUpsUsed) || 0
-        };
-        const res = await fetch(API_ENDPOINT, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-        const data = await res.json().catch(()=> ({}));
-        if (data && data.success) { apiMsg.className = 'text-green-400'; apiMsg.textContent = data.message || 'Player data saved'; }
-        else { apiMsg.className = 'text-yellow-400'; apiMsg.textContent = (data && data.message) ? data.message : 'Saved locally. API did not confirm success.'; }
-      } catch (e) {
-        apiMsg.className = 'text-red-400'; apiMsg.textContent = 'Network error. Your progress is saved locally.';
-      } finally {
-        document.getElementById('loading').classList.remove('show');
-      }
-    }
-
     // Store
+    const pendingPurchases = { magnet:0, shield:0, multiplier:0 };
+
     document.querySelectorAll('.purchase').forEach(btn=>{
       btn.addEventListener('click', ()=>{
         const type = btn.getAttribute('data-power');
@@ -957,8 +1216,6 @@
       });
     });
 
-    const pendingPurchases = { magnet:0, shield:0, multiplier:0 };
-
     btnStore.addEventListener('click', ()=>{
       storeBalance.textContent = points.toString();
       storeMsg.textContent = '';
@@ -973,10 +1230,39 @@
       if (pendingPurchases.multiplier>0){ player.multiplier = 10 * pendingPurchases.multiplier; }
       pendingPurchases.magnet = pendingPurchases.shield = pendingPurchases.multiplier = 0;
       running = true; paused = false; tLast = 0;
+      startAutoSave();
       requestAnimationFrame(loop);
     });
 
-    btnPlayAgain.addEventListener('click', ()=>{ showScreen(screenGame); resetGame(); running = true; paused = false; tLast = 0; requestAnimationFrame(loop); });
+    btnPlayAgain.addEventListener('click', ()=>{ 
+      showScreen(screenGame); 
+      resetGame(); 
+      running = true; 
+      paused = false; 
+      tLast = 0; 
+      startAutoSave();
+      requestAnimationFrame(loop); 
+    });
+
+    // Debug mode toggle (mantener pulsada la tecla D durante 3 segundos)
+    let debugKeyPressed = 0;
+    window.addEventListener('keydown', e => {
+      if (e.key === 'd' || e.key === 'D') {
+        debugKeyPressed++;
+        if (debugKeyPressed > 60) { // 3 segundos a ~20fps
+          const newState = !DEBUG_MODE;
+          localStorage.setItem('frobry_debug', newState.toString());
+          alert(`Debug mode ${newState ? 'ENABLED' : 'DISABLED'}. Page will reload.`);
+          location.reload();
+        }
+      }
+    });
+
+    window.addEventListener('keyup', e => {
+      if (e.key === 'd' || e.key === 'D') {
+        debugKeyPressed = 0;
+      }
+    });
   </script>
 <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97e08523d4a48b21',t:'MTc1NzY5MTgwMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
