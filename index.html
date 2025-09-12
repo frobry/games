@@ -225,6 +225,25 @@
       .glass {
         padding: 1rem;
       }
+
+      /* Ajustes específicos para móviles */
+      #screen-auth .glass {
+        margin: 10px;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      #screen-over .glass {
+        margin: 10px;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
+
+      #screen-store .glass {
+        margin: 10px;
+        max-height: 90vh;
+        overflow-y: auto;
+      }
     }
 
     /* Ajustes para pantallas muy pequeñas */
@@ -247,6 +266,29 @@
       .pad {
         bottom: 16px;
       }
+
+      /* Ocultar elementos menos importantes en móviles */
+      .progress-rail {
+        display: none;
+      }
+
+      .moon {
+        display: none;
+      }
+    }
+
+    /* Flechas para controles móviles */
+    .arrow {
+      font-size: 24px;
+      display: block;
+    }
+
+    /* Prevenir scroll en móviles */
+    body.prevent-scroll {
+      overflow: hidden;
+      position: fixed;
+      width: 100%;
+      height: 100%;
     }
   </style>
 </head>
@@ -342,9 +384,9 @@
         </div>
 
         <div class="pad">
-          <button class="ctl" id="ctlLeft">◀</button>
-          <button class="ctl" id="ctlUp">▲</button>
-          <button class="ctl" id="ctlRight">▶</button>
+          <button class="ctl" id="ctlLeft"><span class="arrow">◀</span></button>
+          <button class="ctl" id="ctlUp"><span class="arrow">▲</span></button>
+          <button class="ctl" id="ctlRight"><span class="arrow">▶</span></button>
         </div>
       </div>
     </section>
@@ -564,6 +606,13 @@
       screenGame.style.display = el===screenGame ? 'block' : 'none';
       screenOver.style.display = el===screenOver ? 'flex' : 'none';
       screenStore.style.display = el===screenStore ? 'flex' : 'none';
+      
+      // Prevenir scroll en móviles
+      if (el === screenGame) {
+        document.body.classList.add('prevent-scroll');
+      } else {
+        document.body.classList.remove('prevent-scroll');
+      }
     }
 
     // Profile
@@ -1208,7 +1257,15 @@
           storeBalance.textContent = points.toString();
           storeMsg.className = 'text-green-400';
           storeMsg.textContent = `${type[0].toUpperCase()+type.slice(1)} purchased! Starts active when next game begins.`;
-          pendingPurchases[type] = (pendingPurchases[type]||0) + 1;
+          
+          // Añadir los segundos correspondientes al power-up comprado
+          if (type === 'magnet') {
+            pendingPurchases.magnet += 10;
+          } else if (type === 'shield') {
+            pendingPurchases.shield += 8;
+          } else if (type === 'multiplier') {
+            pendingPurchases.multiplier += 10;
+          }
         } else {
           storeMsg.className = 'text-red-400';
           storeMsg.textContent = `Not enough points for ${type}.`;
@@ -1225,11 +1282,26 @@
     btnStartFromStore.addEventListener('click', ()=>{
       showScreen(screenGame);
       resetGame();
-      if (pendingPurchases.magnet>0){ player.magnet = 10 * pendingPurchases.magnet; }
-      if (pendingPurchases.shield>0){ player.shield = 8 * pendingPurchases.shield; }
-      if (pendingPurchases.multiplier>0){ player.multiplier = 10 * pendingPurchases.multiplier; }
-      pendingPurchases.magnet = pendingPurchases.shield = pendingPurchases.multiplier = 0;
-      running = true; paused = false; tLast = 0;
+      
+      // Aplicar los power-ups comprados
+      if (pendingPurchases.magnet > 0) { 
+        player.magnet = pendingPurchases.magnet; 
+      }
+      if (pendingPurchases.shield > 0) { 
+        player.shield = pendingPurchases.shield; 
+      }
+      if (pendingPurchases.multiplier > 0) { 
+        player.multiplier = pendingPurchases.multiplier; 
+      }
+      
+      // Reiniciar las compras pendientes
+      pendingPurchases.magnet = 0;
+      pendingPurchases.shield = 0;
+      pendingPurchases.multiplier = 0;
+      
+      running = true; 
+      paused = false; 
+      tLast = 0;
       startAutoSave();
       requestAnimationFrame(loop);
     });
@@ -1263,6 +1335,31 @@
         debugKeyPressed = 0;
       }
     });
+
+    // Prevenir zoom en dispositivos móviles
+    document.addEventListener('touchstart', function(e) {
+      if (e.touches.length > 1) {
+        e.preventDefault();
+      }
+    }, { passive: false });
+
+    let lastTouchEnd = 0;
+    document.addEventListener('touchend', function(e) {
+      const now = (new Date()).getTime();
+      if (now - lastTouchEnd <= 300) {
+        e.preventDefault();
+      }
+      lastTouchEnd = now;
+    }, false);
+
+    // Prevenir scroll en móviles
+    document.addEventListener('touchmove', function(e) {
+      if (e.target.closest('.glass')) {
+        // Permitir scroll dentro de los contenedores glass
+        return;
+      }
+      e.preventDefault();
+    }, { passive: false });
   </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'97e08523d4a48b21',t:'MTc1NzY5MTgwMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</body>
 </html>
