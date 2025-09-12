@@ -477,23 +477,7 @@
   </div>
 
   <script>
-    // Prevenir zoom y scroll en dispositivos móviles
-    document.addEventListener('touchstart', function(e) {
-      if (e.touches.length > 1) {
-        e.preventDefault();
-      }
-    }, { passive: false });
-
-    let lastTouchEnd = 0;
-    document.addEventListener('touchend', function(e) {
-      const now = (new Date()).getTime();
-      if (now - lastTouchEnd <= 300) {
-        e.preventDefault();
-      }
-      lastTouchEnd = now;
-    }, false);
-
-    // Prevenir scroll en móviles
+        // Prevenir scroll en móviles
     document.addEventListener('touchmove', function(e) {
       if (e.target.closest('.glass')) {
         // Permitir scroll dentro de los contenedores glass
