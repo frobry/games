@@ -365,8 +365,8 @@
   <!-- Top brand bar -->
   <div class="absolute top-0 w-full z-40 px-4 py-2 flex items-center justify-between bg-black/30 backdrop-blur-sm">
     <div class="flex items-center gap-2">
-      <div class="w-8 h-8 rounded-full flex items-center justify-center" style="background: linear-gradient(45deg, var(--electric), var(--purple)); box-shadow: 0 0 16px rgba(0,212,255,.3);">
-        <span class="text-black font-extrabold">F</span>
+      <div class="w-8 h-8 rounded-full flex items-center justify-center overflow-hidden" style="background: linear-gradient(45deg, var(--electric), var(--purple)); box-shadow: 0 0 16px rgba(0,212,255,.3);">
+        <img src="logo.png" alt="F" class="w-5 h-5 object-contain" onerror="this.style.display='none'; this.parentElement.innerHTML='<span class=\'text-black font-extrabold\'>F</span>';">
       </div>
       <span class="brand-title text-xl font-extrabold">FROBRY TO THE MOON</span>
     </div>
@@ -1233,6 +1233,25 @@
       drawDebugInfo();
     }
 
+    // Añade esta variable al principio de tu script, con las otras variables
+    let logoImg = null;
+    
+    // Función para cargar la imagen del logo
+    function loadLogo() {
+      logoImg = new Image();
+      logoImg.onload = function() {
+        console.log('Logo cargado correctamente');
+      };
+      logoImg.onerror = function() {
+        console.log('Error al cargar el logo, usando letra F como fallback');
+      };
+      logoImg.src = 'logo.png'; // Asegúrate de que la ruta es correcta
+    }
+  
+    // Llama a esta función al iniciar
+    loadLogo();
+    
+    // Modifica la función drawShip
     function drawShip(x,y,size){
       ctx.save(); ctx.translate(x,y);
       const flame = 10 + Math.random()*8;
@@ -1240,23 +1259,32 @@
       const grd = ctx.createLinearGradient(0,size*0.9,0,size*0.9+flame);
       grd.addColorStop(0, '#ffedd5'); grd.addColorStop(1, '#fb923c');
       ctx.fillStyle = grd; ctx.globalAlpha = 0.8; ctx.fill(); ctx.globalAlpha = 1;
-
+    
       ctx.beginPath(); ctx.moveTo(0, -size); ctx.lineTo(-size*0.7, size); ctx.lineTo(size*0.7, size); ctx.closePath();
       const body = ctx.createLinearGradient(0,-size,0,size);
       body.addColorStop(0, '#111827'); body.addColorStop(1, '#374151');
       ctx.fillStyle = body; ctx.fill(); ctx.lineWidth = 2; ctx.strokeStyle = '#00d4ff'; ctx.stroke();
-
+    
       ctx.beginPath(); ctx.arc(0, 0, size*0.4, 0, Math.PI*2);
-      const logo = ctx.createLinearGradient(-10,-10,10,10);
-      logo.addColorStop(0, COLORS.cyan); logo.addColorStop(1, COLORS.purple);
-      ctx.fillStyle = logo; ctx.fill();
-
-      ctx.fillStyle = '#0a0a0a';
-      ctx.font = `${Math.max(10, size*0.5)}px Orbitron, sans-serif`;
-      ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-      ctx.fillText('F', 0, 0);
+      const logoGradient = ctx.createLinearGradient(-10,-10,10,10);
+      logoGradient.addColorStop(0, COLORS.cyan); logoGradient.addColorStop(1, COLORS.purple);
+      ctx.fillStyle = logoGradient; ctx.fill();
+    
+      // Dibujar el logo o la F como fallback
+      if (logoImg && logoImg.complete && logoImg.naturalHeight !== 0) {
+        // Dibujar la imagen del logo
+        const logoSize = size * 0.6;
+        ctx.drawImage(logoImg, -logoSize/2, -logoSize/2, logoSize, logoSize);
+      } else {
+        // Fallback: dibujar la letra F
+        ctx.fillStyle = '#0a0a0a';
+        ctx.font = `${Math.max(10, size*0.5)}px Orbitron, sans-serif`;
+        ctx.textAlign = 'center'; 
+        ctx.textBaseline = 'middle';
+        ctx.fillText('F', 0, 0);
+      }
       ctx.restore();
-    }
+    }  
 
     function drawCoin(c){
       ctx.beginPath(); ctx.arc(c.x, c.y, c.r, 0, Math.PI*2);
