@@ -208,18 +208,39 @@
         font-size: 1rem;
       }
       
-      .hud > div {
-        transform: scale(0.9);
-        transform-origin: top left;
+      /* Score - 40px más abajo (60px + 40px) */
+      .hud > div:first-child {
+        top: 100px !important;
+        left: 16px !important;
+        transform: none !important;
+        transform-origin: top left !important;
       }
       
-      .hud > div:last-child {
-        transform-origin: top right;
+      /* Power-ups - 25px derecha, 40px más abajo (60px + 40px) */
+      .hud > div:nth-child(2) {
+        top: 100px !important;
+        right: 25px !important;
+        left: auto !important;
+        transform: none !important;
+        transform-origin: top right !important;
       }
       
+      /* Pause button - 40px más abajo (100px + 40px) */
       #btnPause {
+        top: 140px !important;
         padding: 8px 16px;
         font-size: 0.9rem;
+        transform: translateX(-50%) !important;
+      }
+      
+      /* Lifebar - centrada, 40px más arriba (112px - 40px), 25px de cada lado */
+      #lifeBar {
+        top: 72px !important;
+        left: 25px !important;
+        right: 25px !important;
+        width: calc(100% - 50px) !important;
+        transform: none !important;
+        margin: 0 auto;
       }
       
       .ctl {
@@ -256,6 +277,28 @@
       #sessionChip {
         font-size: 0.7rem;
         padding: 4px 8px;
+      }
+      
+      /* Ajustes adicionales para pantallas muy pequeñas */
+      .hud > div:first-child {
+        top: 90px !important;
+        left: 12px !important;
+      }
+      
+      .hud > div:nth-child(2) {
+        top: 90px !important;
+        right: 20px !important;
+      }
+      
+      #btnPause {
+        top: 130px !important;
+      }
+      
+      #lifeBar {
+        top: 65px !important;
+        left: 20px !important;
+        right: 20px !important;
+        width: calc(100% - 40px) !important;
       }
       
       .ctl {
