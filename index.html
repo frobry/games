@@ -624,7 +624,7 @@
     })();
 
     // CONFIG
-    const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbyKyypkhIokcUp6jWIMC9LkIG5udNGZghQIpLY5GbgC2rEmI5cNpMaZtOEakewE9-fkcw/exec";
+    const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbzZ_LXyjjT4EZ0pBhm_1n3WOg1Vuz55uDaCfvDw5hU5xfbAmkj5qqghmlvsz_2D-1T6aw/exec";
     const COSTS = { magnet: 50, shield: 100, multiplier: 200 };
     const TOKEN_RATE = 1000;
     const MOON_TARGET_SCORE = 10000;
@@ -1306,6 +1306,40 @@
       ctx.fillStyle = '#991b1b'; ctx.fill();
       ctx.beginPath(); ctx.arc(m.x+4, m.y+5, m.r*0.22, 0, Math.PI*2);
       ctx.fillStyle = '#991b1b'; ctx.fill();
+    }
+
+    // Función para probar la API manualmente
+    function testAPI() {
+      const testPayload = {
+        username: 'testuser-' + Math.random().toString(36).substring(7),
+        email: 'test' + Math.random().toString(36).substring(7) + '@example.com',
+        deviceId: 'test-device-' + Math.random().toString(36).substring(7),
+        highScore: Math.floor(Math.random() * 1000),
+        totalPoints: Math.floor(Math.random() * 2000),
+        gamesPlayed: Math.floor(Math.random() * 10) + 1,
+        powerUpsUsed: Math.floor(Math.random() * 5)
+      };
+      
+      console.log('🧪 Probando API con:', testPayload);
+      
+      fetch(API_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(testPayload)
+      })
+      .then(response => response.text())
+      .then(text => {
+        console.log('📋 Respuesta en texto:', text);
+        try {
+          const data = JSON.parse(text);
+          console.log('✅ JSON parseado:', data);
+        } catch (e) {
+          console.log('❌ No es JSON, texto completo:', text);
+        }
+      })
+      .catch(error => {
+        console.error('❌ Error:', error);
+      });
     }
 
     async function syncResultWithAPI() {
