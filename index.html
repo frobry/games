@@ -1315,12 +1315,15 @@
         const payload = {
           username: profile.username,
           email: profile.email,
-          password: profile.deviceKey,
+          deviceId: profile.deviceKey,
           highScore: Number(profile.highScore) || 0,
           totalPoints: Number(profile.totalPoints) || 0,
           gamesPlayed: Number(profile.gamesPlayed) || 0,
           powerUpsUsed: Number(profile.powerUpsUsed) || 0
         };
+        
+        console.log('📤 Enviando a API:', payload);
+        console.log('🔗 URL de API:', API_ENDPOINT);
         
         const res = await fetch(API_ENDPOINT, { 
           method: 'POST', 
@@ -1328,18 +1331,31 @@
           body: JSON.stringify(payload) 
         });
         
-        const data = await res.json().catch(() => ({}));
+        console.log('📥 Respuesta recibida. Status:', res.status);
+        
+        const responseText = await res.text();
+        console.log('📄 Texto de respuesta:', responseText);
+        
+        let data = {};
+        try {
+          data = JSON.parse(responseText);
+          console.log('✅ JSON parseado:', data);
+        } catch (e) {
+          console.error('❌ Error parseando JSON:', e, 'Texto:', responseText);
+          data = { success: false, message: 'Invalid JSON response: ' + responseText };
+        }
+        
         if (data && data.success) { 
           apiMsg.className = 'text-green-400'; 
           apiMsg.textContent = data.message || 'Player data saved'; 
         } else { 
           apiMsg.className = 'text-yellow-400'; 
-          apiMsg.textContent = (data && data.message) ? data.message : 'Saved locally. API did not confirm success.'; 
+          apiMsg.textContent = (data && data.message) ? data.message : 'Saved locally. API connection issue.'; 
         }
       } catch (e) {
+        console.error('❌ Error en fetch:', e);
         apiMsg.className = 'text-red-400'; 
         apiMsg.textContent = 'Network error. Your progress is saved locally.'; 
-        console.error('API Error:', e);
       } finally {
         hideLoading();
       }
