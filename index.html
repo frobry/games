@@ -1342,14 +1342,50 @@
       });
     }
 
+    // Función de debug mejorada
+    function debugAPISend() {
+      console.log('=== DEBUG API SEND ===');
+      
+      // Verificar el perfil completo
+      console.log('Perfil completo:', profile);
+      
+      // Verificar deviceKey específicamente
+      console.log('deviceKey:', profile.deviceKey);
+      console.log('typeof deviceKey:', typeof profile.deviceKey);
+      
+      // Verificar localStorage
+      console.log('localStorage device_key:', localStorage.getItem('frobry_device_key'));
+      
+      // Simular el payload que se enviaría
+      const testPayload = {
+        username: profile.username,
+        email: profile.email,
+        deviceId: profile.deviceKey,
+        highScore: Number(profile.highScore) || 0,
+        totalPoints: Number(profile.totalPoints) || 0,
+        gamesPlayed: Number(profile.gamesPlayed) || 0,
+        powerUpsUsed: Number(profile.powerUpsUsed) || 0
+      };
+      
+      console.log('Payload que se enviaría:', testPayload);
+      return testPayload;
+    }
+    
     async function syncResultWithAPI() {
       showLoading('Saving progress...');
       apiMsg.textContent = '';
       try {
+        // DEBUG: Asegurar que tenemos todos los datos
+        console.log('=== SYNC API CALLED ===');
+        console.log('Perfil antes de enviar:', profile);
+        
+        // Asegurar que deviceKey existe
+        ensureDeviceKey();
+        
         const payload = {
-          username: profile.username,
-          email: profile.email,
-          deviceId: profile.deviceKey,
+          username: profile.username || 'Unknown',
+          email: profile.email || 'unknown@example.com',
+          deviceId: profile.deviceKey || 'web-device-unknown',
           highScore: Number(profile.highScore) || 0,
           totalPoints: Number(profile.totalPoints) || 0,
           gamesPlayed: Number(profile.gamesPlayed) || 0,
@@ -1357,7 +1393,7 @@
         };
         
         console.log('📤 Enviando a API:', payload);
-        console.log('🔗 URL de API:', API_ENDPOINT);
+        console.log('🔗 URL:', API_ENDPOINT);
         
         const res = await fetch(API_ENDPOINT, { 
           method: 'POST', 
@@ -1376,7 +1412,7 @@
           console.log('✅ JSON parseado:', data);
         } catch (e) {
           console.error('❌ Error parseando JSON:', e, 'Texto:', responseText);
-          data = { success: false, message: 'Invalid JSON response: ' + responseText };
+          data = { success: false, message: 'Invalid JSON response' };
         }
         
         if (data && data.success) { 
