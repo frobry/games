@@ -26,7 +26,7 @@
       background: var(--bg);
       color: #fff;
       overflow: hidden;
-      position: fixed; /* ← Esto previene el scroll */
+      position: fixed;
       font-family: 'Orbitron', sans-serif;
     }
 
@@ -123,9 +123,9 @@
 
     /* Stars - FIXED: Tamaño reducido para móvil */
     .stars, .stars2, .stars3 {
-      position: fixed; /* ← Cambiado de absolute a fixed */
-      width: 100%; /* ← Reducido de 250% a 100% */
-      height: 100%; /* ← Reducido de 250% a 100% */
+      position: fixed;
+      width: 100%;
+      height: 100%;
       background-repeat: repeat; pointer-events: none; z-index: 0; opacity: .65;
     }
     .stars { background-image:
@@ -202,14 +202,14 @@
     /* Hide default cursor on desktop */
     body, #app, canvas { cursor: none; }
 
-    /* Ajustes para móviles */
+    /* Mobile adjustments */
     @media (max-width: 768px) {
       .brand-title {
         font-size: 1rem;
       }
 
       .stars, .stars2, .stars3 {
-        opacity: 0.4; /* Reducir opacidad */
+        opacity: 0.4;
       }
       
       .stars {
@@ -272,7 +272,7 @@
         font-size: 1.2rem;
       }
       
-      /* Ajustar overlays para móviles */
+      /* Adjust overlays for mobile */
       .screen.active {
         padding: 10px;
       }
@@ -281,7 +281,7 @@
         padding: 1rem;
       }
 
-      /* Ocultar elementos menos importantes en móviles */
+      /* Hide less important elements on mobile */
       .progress-rail {
         display: none;
       }
@@ -291,7 +291,7 @@
       }
     }
 
-    /* Ajustes para pantallas muy pequeñas */
+    /* Adjustments for very small screens */
     @media (max-width: 480px) {
       .brand-title {
         font-size: 0.9rem;
@@ -302,7 +302,7 @@
         padding: 4px 8px;
       }
       
-      /* Ajustes adicionales para pantallas muy pequeñas */
+      /* Additional adjustments for very small screens */
       .hud > div:first-child {
         top: 120px !important;
         left: 12px !important;
@@ -335,13 +335,13 @@
       }
     }
 
-    /* Flechas para controles móviles */
+    /* Arrows for mobile controls */
     .arrow {
       font-size: 40px;
       display: block;
     }
 
-    /* Prevenir scroll en móviles - FIXED */
+    /* Prevent scroll on mobile - FIXED */
     body.prevent-scroll, html.prevent-scroll {
       overflow: hidden !important;
       position: fixed !important;
@@ -349,7 +349,7 @@
       height: 100% !important;
     }
     
-    /* Asegurar que el contenedor principal no cause overflow */
+    /* Ensure main container doesn't cause overflow */
     #app {
       position: fixed;
       top: 0;
@@ -543,16 +543,16 @@
   </div>
 
   <script>
-        // Prevenir scroll en móviles
+    // Prevent mobile scrolling
     document.addEventListener('touchmove', function(e) {
       if (e.target.closest('.glass')) {
-        // Permitir scroll dentro de los contenedores glass
+        // Allow scroll inside glass containers
         return;
       }
       e.preventDefault();
     }, { passive: false });
     
-    // Forzar el tamaño correcto en móviles
+    // Force correct size on mobile
     function handleMobileResize() {
       const isMobile = window.innerWidth <= 768;
       if (isMobile) {
@@ -563,7 +563,7 @@
       }
     }
     
-    // Ejecutar al cargar y al redimensionar
+    // Execute on load and resize
     window.addEventListener('load', handleMobileResize);
     window.addEventListener('resize', handleMobileResize);
     
@@ -614,7 +614,7 @@
         ring.style.transform = `translate(${rx}px, ${ry}px) scale(1)`;
       });
 
-      // Don’t hide pointer on touch devices
+      // Don't hide pointer on touch devices
       function isTouch(){ return 'ontouchstart' in window || navigator.maxTouchPoints > 0; }
       if (isTouch()){
         dot.style.display = 'none';
@@ -624,7 +624,7 @@
     })();
 
     // CONFIG
-    const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbzS2RMlBQ5fBK8YqNCRnIBpb1kJfzpt_a8AXLPtczLzzg4xBWalg8fhBEH7eDbtD6nyVw/exec";
+    const API_ENDPOINT = "https://script.google.com/macros/s/AKfycbyek1IW0x7a2etfPTuBdNgGGtez23E6c_eslOHAVO--7IuPtm8eB9VgnufzKXbSFrmwLQ/exec";
     const COSTS = { magnet: 50, shield: 100, multiplier: 200 };
     const TOKEN_RATE = 1000;
     const MOON_TARGET_SCORE = 10000;
@@ -699,7 +699,7 @@
       screenOver.style.display = el===screenOver ? 'flex' : 'none';
       screenStore.style.display = el===screenStore ? 'flex' : 'none';
       
-      // Prevenir scroll en móviles
+      // Prevent scrolling on mobile
       if (el === screenGame) {
         document.body.classList.add('prevent-scroll');
       } else {
@@ -721,7 +721,7 @@
     function ensureDeviceKey() {
       let key = localStorage.getItem('frobry_device_key');
       if (!key) {
-        // Generar un ID más robusto
+        // Generate a more robust ID
         key = 'frobry_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
         localStorage.setItem('frobry_device_key', key);
       }
@@ -861,7 +861,7 @@
           if (id === 'ctlRight') touchRight = true;
           if (id === 'ctlUp') touchUp = true;
           
-          // Feedback visual
+          // Visual feedback
           control.style.transform = 'scale(0.9)';
           control.style.opacity = '0.8';
         }, {passive: false});
@@ -873,7 +873,7 @@
           if (id === 'ctlRight') touchRight = false;
           if (id === 'ctlUp') touchUp = false;
           
-          // Restaurar estilo
+          // Restore style
           control.style.transform = 'scale(1)';
           control.style.opacity = '1';
         }, {passive: false});
@@ -885,7 +885,7 @@
           if (id === 'ctlRight') touchRight = false;
           if (id === 'ctlUp') touchUp = false;
           
-          // Restaurar estilo
+          // Restore style
           control.style.transform = 'scale(1)';
           control.style.opacity = '1';
         }, {passive: false});
@@ -895,7 +895,7 @@
 
     btnPause.addEventListener('click', () => { paused = !paused; btnPause.textContent = paused ? 'Resume' : 'Pause'; });
 
-    // Guardado automático
+    // Automatic saving
     function startAutoSave() {
       if (autoSaveInterval) clearInterval(autoSaveInterval);
       autoSaveInterval = setInterval(() => {
@@ -903,7 +903,7 @@
           saveLocalProfile();
           console.log('Game auto-saved');
         }
-      }, 30000); // 30 segundos
+      }, 30000); // 30 seconds
     }
 
     function stopAutoSave() {
@@ -949,7 +949,7 @@
       if (!running) return;
       if (!tLast) tLast = ts;
       
-      // Control de FPS para mejorar rendimiento
+      // FPS control for better performance
       const fps = 60;
       const frameInterval = 1000 / fps;
       const elapsed = ts - tLast;
@@ -1097,7 +1097,7 @@
       progressFill.style.height = (prog*100).toFixed(1) + '%';
     }
 
-    // Crear pool de partículas para reutilización
+    // Create particle pool for reuse
     const particlePool = [];
     const MAX_PARTICLES = 200;
     const particles = [];
@@ -1233,25 +1233,25 @@
       drawDebugInfo();
     }
 
-    // Añade esta variable al principio de tu script, con las otras variables
+    // Add this variable at the beginning of your script, with other variables
     let logoImg = null;
     
-    // Función para cargar la imagen del logo
+    // Function to load the logo image
     function loadLogo() {
       logoImg = new Image();
       logoImg.onload = function() {
-        console.log('Logo cargado correctamente');
+        console.log('Logo loaded correctly');
       };
       logoImg.onerror = function() {
-        console.log('Error al cargar el logo, usando letra F como fallback');
+        console.log('Error loading logo, using F letter as fallback');
       };
-      logoImg.src = 'logo.png'; // Asegúrate de que la ruta es correcta
+      logoImg.src = 'logo.png'; // Make sure the path is correct
     }
   
-    // Llama a esta función al iniciar
+    // Call this function on init
     loadLogo();
     
-    // Modifica la función drawShip
+    // Modify the drawShip function
     function drawShip(x,y,size){
       ctx.save(); ctx.translate(x,y);
       const flame = 10 + Math.random()*8;
@@ -1270,13 +1270,13 @@
       logoGradient.addColorStop(0, COLORS.cyan); logoGradient.addColorStop(1, COLORS.purple);
       ctx.fillStyle = logoGradient; ctx.fill();
     
-      // Dibujar el logo o la F como fallback
+      // Draw the logo or the F as fallback
       if (logoImg && logoImg.complete && logoImg.naturalHeight !== 0) {
-        // Dibujar la imagen del logo
+        // Draw the logo image
         const logoSize = size * 0.6;
         ctx.drawImage(logoImg, -logoSize/2, -logoSize/2, logoSize, logoSize);
       } else {
-        // Fallback: dibujar la letra F
+        // Fallback: draw the letter F
         ctx.fillStyle = '#0a0a0a';
         ctx.font = `${Math.max(10, size*0.5)}px Orbitron, sans-serif`;
         ctx.textAlign = 'center'; 
@@ -1308,7 +1308,7 @@
       ctx.fillStyle = '#991b1b'; ctx.fill();
     }
 
-    // Función para probar la API manualmente
+    // Function to manually test the API
     function testAPI() {
       const testPayload = {
         username: 'testuser-' + Math.random().toString(36).substring(7),
@@ -1320,7 +1320,7 @@
         powerUpsUsed: Math.floor(Math.random() * 5)
       };
       
-      console.log('🧪 Probando API con:', testPayload);
+      console.log('Testing API with:', testPayload);
       
       fetch(API_ENDPOINT, {
         method: 'POST',
@@ -1329,34 +1329,34 @@
       })
       .then(response => response.text())
       .then(text => {
-        console.log('📋 Respuesta en texto:', text);
+        console.log('Response text:', text);
         try {
           const data = JSON.parse(text);
-          console.log('✅ JSON parseado:', data);
+          console.log('Parsed JSON:', data);
         } catch (e) {
-          console.log('❌ No es JSON, texto completo:', text);
+          console.log('Not JSON, full text:', text);
         }
       })
       .catch(error => {
-        console.error('❌ Error:', error);
+        console.error('Error:', error);
       });
     }
 
-    // Función de debug mejorada
+    // Improved debug function
     function debugAPISend() {
       console.log('=== DEBUG API SEND ===');
       
-      // Verificar el perfil completo
-      console.log('Perfil completo:', profile);
+      // Verify complete profile
+      console.log('Complete profile:', profile);
       
-      // Verificar deviceKey específicamente
+      // Verify deviceKey specifically
       console.log('deviceKey:', profile.deviceKey);
       console.log('typeof deviceKey:', typeof profile.deviceKey);
       
-      // Verificar localStorage
+      // Verify localStorage
       console.log('localStorage device_key:', localStorage.getItem('frobry_device_key'));
       
-      // Simular el payload que se enviaría
+      // Simulate the payload that would be sent
       const testPayload = {
         username: profile.username,
         email: profile.email,
@@ -1367,7 +1367,7 @@
         powerUpsUsed: Number(profile.powerUpsUsed) || 0
       };
       
-      console.log('Payload que se enviaría:', testPayload);
+      console.log('Payload that would be sent:', testPayload);
       return testPayload;
     }
     
@@ -1375,25 +1375,30 @@
       showLoading('Saving progress...');
       apiMsg.textContent = '';
       try {
-        // DEBUG: Asegurar que tenemos todos los datos
+        // DEBUG: Ensure we have all the data
         console.log('=== SYNC API CALLED ===');
-        console.log('Perfil antes de enviar:', profile);
+        console.log('Profile before sending:', profile);
         
-        // Asegurar que deviceKey existe
+        // Ensure deviceKey exists
         ensureDeviceKey();
         
+        // Validate that we have the minimum required data
+        if (!profile.username || !profile.email) {
+          throw new Error('Username and email are required');
+        }
+
         const payload = {
-          username: profile.username || 'Unknown',
-          email: profile.email || 'unknown@example.com',
-          deviceId: profile.deviceKey || 'web-device-unknown',
+          username: profile.username,
+          email: profile.email,
+          deviceId: profile.deviceKey,
           highScore: Number(profile.highScore) || 0,
           totalPoints: Number(profile.totalPoints) || 0,
           gamesPlayed: Number(profile.gamesPlayed) || 0,
           powerUpsUsed: Number(profile.powerUpsUsed) || 0
         };
         
-        console.log('📤 Enviando a API:', payload);
-        console.log('🔗 URL:', API_ENDPOINT);
+        console.log('Sending to API:', payload);
+        console.log('URL:', API_ENDPOINT);
         
         const res = await fetch(API_ENDPOINT, { 
           method: 'POST', 
@@ -1401,31 +1406,31 @@
           body: JSON.stringify(payload) 
         });
         
-        console.log('📥 Respuesta recibida. Status:', res.status);
+        console.log('Response received. Status:', res.status);
         
         const responseText = await res.text();
-        console.log('📄 Texto de respuesta:', responseText);
+        console.log('Response text:', responseText);
         
         let data = {};
         try {
           data = JSON.parse(responseText);
-          console.log('✅ JSON parseado:', data);
+          console.log('Parsed JSON:', data);
         } catch (e) {
-          console.error('❌ Error parseando JSON:', e, 'Texto:', responseText);
+          console.error('Error parsing JSON:', e, 'Text:', responseText);
           data = { success: false, message: 'Invalid JSON response' };
         }
         
         if (data && data.success) { 
           apiMsg.className = 'text-green-400'; 
-          apiMsg.textContent = data.message || 'Player data saved'; 
+          apiMsg.textContent = data.message || 'Player data saved successfully'; 
         } else { 
           apiMsg.className = 'text-yellow-400'; 
           apiMsg.textContent = (data && data.message) ? data.message : 'Saved locally. API connection issue.'; 
         }
       } catch (e) {
-        console.error('❌ Error en fetch:', e);
+        console.error('Fetch error:', e);
         apiMsg.className = 'text-red-400'; 
-        apiMsg.textContent = 'Network error. Your progress is saved locally.'; 
+        apiMsg.textContent = 'Error: ' + e.message; 
       } finally {
         hideLoading();
       }
@@ -1464,7 +1469,7 @@
           storeMsg.className = 'text-green-400';
           storeMsg.textContent = `${type[0].toUpperCase()+type.slice(1)} purchased! Starts active when next game begins.`;
           
-          // Añadir los segundos correspondientes al power-up comprado
+          // Add the corresponding seconds to the purchased power-up
           if (type === 'magnet') {
             pendingPurchases.magnet += 10;
           } else if (type === 'shield') {
@@ -1489,7 +1494,7 @@
       showScreen(screenGame);
       resetGame();
       
-      // Aplicar los power-ups comprados
+      // Apply purchased power-ups
       if (pendingPurchases.magnet > 0) { 
         player.magnet = pendingPurchases.magnet; 
       }
@@ -1500,7 +1505,7 @@
         player.multiplier = pendingPurchases.multiplier; 
       }
       
-      // Reiniciar las compras pendientes
+      // Reset pending purchases
       pendingPurchases.magnet = 0;
       pendingPurchases.shield = 0;
       pendingPurchases.multiplier = 0;
@@ -1522,12 +1527,12 @@
       requestAnimationFrame(loop); 
     });
 
-    // Debug mode toggle (mantener pulsada la tecla D durante 3 segundos)
+    // Debug mode toggle (hold D key for 3 seconds)
     let debugKeyPressed = 0;
     window.addEventListener('keydown', e => {
       if (e.key === 'd' || e.key === 'D') {
         debugKeyPressed++;
-        if (debugKeyPressed > 60) { // 3 segundos a ~20fps
+        if (debugKeyPressed > 60) { // 3 seconds at ~20fps
           const newState = !DEBUG_MODE;
           localStorage.setItem('frobry_debug', newState.toString());
           alert(`Debug mode ${newState ? 'ENABLED' : 'DISABLED'}. Page will reload.`);
@@ -1542,7 +1547,7 @@
       }
     });
 
-    // Prevenir zoom en dispositivos móviles
+    // Prevent zoom on mobile devices
     document.addEventListener('touchstart', function(e) {
       if (e.touches.length > 1) {
         e.preventDefault();
@@ -1558,10 +1563,10 @@
       lastTouchEnd = now;
     }, false);
 
-    // Prevenir scroll en móviles
+    // Prevent scroll on mobile
     document.addEventListener('touchmove', function(e) {
       if (e.target.closest('.glass')) {
-        // Permitir scroll dentro de los contenedores glass
+        // Allow scroll inside glass containers
         return;
       }
       e.preventDefault();
