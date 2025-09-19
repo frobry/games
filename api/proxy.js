@@ -1,9 +1,11 @@
-// api/proxy.js
+// api/proxy.js - VERSIÓN CORREGIDA
 export default async function handler(req, res) {
-  // Habilitar CORS
+  // Configurar headers de seguridad CORRECTOS para Vercel
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, GET, OPTIONS, DELETE, PUT');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Content-Security-Policy', "default-src 'self' https:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:;");
   
   // Manejar preflight OPTIONS
   if (req.method === 'OPTIONS') {
@@ -29,6 +31,7 @@ export default async function handler(req, res) {
     const data = await response.text();
     console.log('✅ Google Apps Script response:', data);
     
+    // Enviar respuesta al cliente
     res.status(200).send(data);
     
   } catch (error) {
